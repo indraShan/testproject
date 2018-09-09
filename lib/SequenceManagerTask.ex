@@ -9,10 +9,10 @@ defmodule SequenceManagerTask do
     }
   end
 
-  def start(_opts) do
+  def start(opts) do
     Task.start(fn ->
       # parse args, get n and k
-      findSequencesInRange(1000000, 24, [])
+      findSequencesInRange(String.to_integer(Enum.at(opts,0)), String.to_integer(Enum.at(opts,1)), [])
     end)
   end
 
