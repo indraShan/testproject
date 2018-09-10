@@ -5,7 +5,7 @@ defmodule SequenceManagerTask do
   work on a sequence of numbers to find the correct set of 
   numbers, the sum of squares of which is a perfect square.
 
-  Number of tasks created = Floor(N/k)
+  Number of tasks created = approximately N/k +- 1
   """
   def child_spec(opts) do
     %{
@@ -17,6 +17,14 @@ defmodule SequenceManagerTask do
     }
   end
 
+  @doc """
+  Creates an agent to keep the state of an integer count. This
+  count is incremented everytime a worker is spawned and is
+  decremented everytime a worker finishes by returning the result.
+  A key 'done' is initialized to false.
+  This SequenceManagerTask is started by using the child_spec 
+  attributes.
+  """
   def start(opts) do
     Task.start(fn ->
       {:ok, counterAgent} = Agent.start_link(fn -> %{:taskCount => 0, :done => :false}  end)
@@ -26,6 +34,14 @@ defmodule SequenceManagerTask do
     end)
   end
 
+  @doc """
+  This method waits until a message is received from any of the
+  workers. Whenever a result message is received, it updates the
+  agent by decrementing the count.
+  If count = 0 and done = true, all workers are finished sending
+  back the result and thus the SequenceManagerTask can exit. It
+  exits by sending back :done message to the AppSupervisor. 
+  """
   def waitForResults(counterAgent, caller) do
     receive do
       {:taskResult, result} ->
@@ -35,8 +51,6 @@ defmodule SequenceManagerTask do
         Agent.update(counterAgent, &Map.put(&1, :taskCount, Map.get(&1, :taskCount)-1))
         remainingTasks = Agent.get(counterAgent, &Map.get(&1, :taskCount))
         alldone = Agent.get(counterAgent, &Map.get(&1, :done))
-        # IO.puts "remainingTasks = #{remainingTasks}"
-        # IO.puts "alldone = #{alldone}"
         if remainingTasks == 0 and alldone == :true do
           send caller, {:done}
         else
@@ -46,12 +60,22 @@ defmodule SequenceManagerTask do
     end
   end
 
+  @doc """
+  Starts a new worker and updates the agent by incrementing the
+  count. 
+  """
   defp startTask(start, k, n, counterAgent) do
     {:ok, task} = SequenceFinderTask.start()
     Agent.update(counterAgent, &Map.put(&1, :taskCount, Map.get(&1, :taskCount)+1))
     send(task, {:startTask, start, k, n, self()})
   end
 
+  @doc """
+  This is executeed when the limiting condition index>n is 
+  reached. As a result, the key 'done' is made true. This 
+  means that the SequenceManagerTask has spawned all the 
+  required number of worker tasks.
+  """
   defp startSequenceFinder(index, n, _k, counterAgent) when index > n do
     Agent.update(counterAgent, &Map.put(&1, :done, :true))
   end

@@ -15,7 +15,9 @@ defmodule Starter do
   use Application
 
   @doc """
-
+  Starts the app by starting a supervisor and then waits
+  until a :done message is received back. This ensures
+  that the application does not get killed abruptly.
   """
   def start(_type, _args) do
     AppSupervisor.start_link(name: StaticAppSupervisor, application: self(), args: System.argv())

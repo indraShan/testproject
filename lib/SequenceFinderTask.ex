@@ -31,6 +31,26 @@ defmodule SequenceFinderTask do
     result
   end
 
+  @doc """
+  K here is NOT the same as k input to the application
+  Desired Sequence => s s+1 ...... k
+
+  1 2 3 ...... s ....... k
+
+  sum of squares of first k numbers is
+        k*(k+1)*(2k+1)
+      -----------------
+              6
+  sum of squares of first s-1 numbers is
+        (s-1)*(s-1+1)*(2(s-1)+1)
+       --------------------------
+                  6
+  Hence sum of squares of numbers in desired sequence is
+  the difference of the above two equations.
+
+  Method returns a list [s] if perfect square is found
+  else an empty list []
+  """
   defp findSequence(s, k) do
     num = k * (k + 1) * (2 * k + 1)
     prev_seq = (s - 1) * s * (2 * s - 1)
