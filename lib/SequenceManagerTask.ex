@@ -1,4 +1,12 @@
 defmodule SequenceManagerTask do
+  @moduledoc """
+  Problem Statement logic starts here.
+  This module creates a number of tasks, that individually
+  work on a sequence of numbers to find the correct set of 
+  numbers, the sum of squares of which is a perfect square.
+
+  Number of tasks created = Floor(N/k)
+  """
   def child_spec(opts) do
     %{
       id: __MODULE__,

@@ -9,7 +9,7 @@ defmodule Starter do
   k => sequence length
 
   Example:
-  mix run ./lib/Starter.ex 1000000, 24
+  mix run ./lib/Starter.ex 1000000 24
 
   """
   use Application
