@@ -1,9 +1,9 @@
 defmodule Starter do
   @moduledoc """
-  This module acts as the application starter. It 
+  This module acts as the application starter. It
   takes in arguments from the command line and passes
   it on to the next subsequent modules.
-  
+
   Two arguments should be passed from command line
   N => maximum number upto which sequences to be checked
   k => sequence length
@@ -15,9 +15,17 @@ defmodule Starter do
   use Application
 
   @doc """
-  
+
   """
   def start(_type, _args) do
-    AppSupervisor.start_link(name: StaticAppSupervisor, args: System.argv())
+    AppSupervisor.start_link(name: StaticAppSupervisor, application: self(), args: System.argv())
+    waitForResult()
+    {:ok, self()}
+  end
+
+  def waitForResult() do
+    receive do
+      {:done} -> IO.puts "Done"
+    end
   end
 end
