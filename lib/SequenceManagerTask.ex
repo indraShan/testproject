@@ -94,7 +94,7 @@ defmodule SequenceManagerTask do
         div(n, 10)
 
       true ->
-        div(n, k)
+        max(div(n, k), div(n, 100))
     end
   end
 
