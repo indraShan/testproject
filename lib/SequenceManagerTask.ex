@@ -1,18 +1,23 @@
 defmodule SequenceResultTask do
+  @moduledoc """
+  This module receives the results after they are computed by
+  SequenceFinderTask's started by the manager.
+  This module is also responsible for printing the results to
+  console and to let the caller know when the computation is done.
+  """
   def start(counterAgent, caller) do
     Task.start(fn ->
       waitForResults(counterAgent, caller, 0)
     end)
   end
 
-  @doc """
-  This method waits until a message is received from any of the
-  workers. Whenever a result message is received, it updates the
-  agent by decrementing the count.
-  If count = 0 and done = true, all workers are finished sending
-  back the result and thus the SequenceManagerTask can exit. It
-  exits by sending back :done message to the AppSupervisor.
-  """
+  # This method waits until a message is received from any of the
+  # workers. Whenever a result message is received, it updates the
+  # agent by decrementing the count.
+  # If count = 0 and done = true, all workers are finished sending
+  # back the result and thus the SequenceManagerTask can exit. It
+  # exits by sending back :done message to the AppSupervisor.
+
   defp waitForResults(counterAgent, caller, count) do
     receive do
       {:taskDone} ->
@@ -25,6 +30,7 @@ defmodule SequenceResultTask do
         else
           waitForResults(counterAgent, caller, count)
         end
+
       {:taskResult, result} ->
         IO.puts(result)
         count = count + 1
@@ -76,15 +82,15 @@ defmodule SequenceManagerTask do
     end)
   end
 
-  @doc """
-  Starts a new worker and updates the agent by incrementing the
-  count.
-  """
+  # Starts a new worker and updates the agent by incrementing the
+  # count.
   defp startTask(rangeStart, rangeEnd, k, n, resultTask, counterAgent) do
     Agent.update(counterAgent, &Map.put(&1, :taskCount, Map.get(&1, :taskCount) + 1))
     SequenceFinderTask.start(rangeStart, rangeEnd, k, n, resultTask)
   end
 
+  # Determines the loadFator - which then limits the number of processes
+  # that get created.
   defp loadFactorForInput(n, k) do
     cond do
       n <= 1000 ->
@@ -94,6 +100,8 @@ defmodule SequenceManagerTask do
         div(n, 10)
 
       true ->
+        # Number of processes bounded to 100, as we didnt see any noticable
+        # speed up for corresponding increase in actor count.
         max(div(n, k), div(n, 100))
     end
   end

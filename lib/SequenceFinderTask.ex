@@ -1,4 +1,10 @@
 defmodule SequenceFinderTask do
+  @moduledoc """
+  This module does the actual computation for a range. If the range contains
+  a valid sequence, this module sends a 'taskResult' message to caller. At the
+  end of the computation the module also sends a 'taskDone' message so that the
+  caller can terminate the application if required.
+  """
   def start(rangeStart, rangeEnd, k, n, caller) do
     Task.start(fn ->
       findSequenceInRange(rangeStart, rangeEnd, k, n, caller)
@@ -7,6 +13,7 @@ defmodule SequenceFinderTask do
 
   defp calculateForRange(rangeStart, rangeEnd, _k, n, caller)
        when rangeStart > n or rangeStart > rangeEnd do
+    # Computation for curren range is over.
     send(caller, {:taskDone})
   end
 
@@ -19,26 +26,25 @@ defmodule SequenceFinderTask do
     calculateForRange(rangeStart, rangeEnd, k, n, caller)
   end
 
-  @doc """
-  K here is NOT the same as k input to the application
-  Desired Sequence => s s+1 ...... k
+  # K here is NOT the same as k input to the application
+  # Desired Sequence => s s+1 ...... k
+  #
+  # 1 2 3 ...... s ....... k
+  #
+  # sum of squares of first k numbers is
+  #       k*(k+1)*(2k+1)
+  #     -----------------
+  #             6
+  # sum of squares of first s-1 numbers is
+  #       (s-1)*(s-1+1)*(2(s-1)+1)
+  #      --------------------------
+  #                 6
+  # Hence sum of squares of numbers in desired sequence is
+  # the difference of the above two equations.
+  #
+  # Method returns a list [s] if perfect square is found
+  # else an empty list []
 
-  1 2 3 ...... s ....... k
-
-  sum of squares of first k numbers is
-        k*(k+1)*(2k+1)
-      -----------------
-              6
-  sum of squares of first s-1 numbers is
-        (s-1)*(s-1+1)*(2(s-1)+1)
-       --------------------------
-                  6
-  Hence sum of squares of numbers in desired sequence is
-  the difference of the above two equations.
-
-  Method returns a list [s] if perfect square is found
-  else an empty list []
-  """
   defp findSequence(s, k, caller) do
     num = k * (k + 1) * (2 * k + 1)
     prev_seq = (s - 1) * s * (2 * s - 1)
