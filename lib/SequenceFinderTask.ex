@@ -1,34 +1,22 @@
 defmodule SequenceFinderTask do
-  def start() do
-    Task.start_link(fn -> loop() end)
+  def start(rangeStart, rangeEnd, k, n, caller) do
+    Task.start(fn ->
+      findSequenceInRange(rangeStart, rangeEnd, k, n, caller)
+    end)
   end
 
-  defp loop() do
-    receive do
-      {:startTask, rangeStart, k, n, caller} ->
-        result = findSequenceInRange(rangeStart, rangeStart + k, k, n)
-
-        # if length(result) != 0 do
-        #   send(caller, {:taskResult, result})
-        # end
-        send(caller, {:taskResult, result})
-        {:ok, self()}
-    end
-  end
-
-  defp calculateForRange(rangeStart, rangeEnd, _k, n)
+  defp calculateForRange(rangeStart, rangeEnd, _k, n, caller)
        when rangeStart > n or rangeStart > rangeEnd do
-    []
+    send(caller, {:taskDone})
   end
 
-  defp calculateForRange(rangeStart, rangeEnd, k, n) do
-    findSequence(rangeStart, rangeStart + k - 1) ++
-      calculateForRange(rangeStart + 1, rangeEnd, k, n)
+  defp calculateForRange(rangeStart, rangeEnd, k, n, caller) do
+    findSequence(rangeStart, rangeStart + k - 1, caller)
+    calculateForRange(rangeStart + 1, rangeEnd, k, n, caller)
   end
 
-  defp findSequenceInRange(rangeStart, rangeEnd, k, n) do
-    result = calculateForRange(rangeStart, rangeEnd, k, n)
-    result
+  defp findSequenceInRange(rangeStart, rangeEnd, k, n, caller) do
+    calculateForRange(rangeStart, rangeEnd, k, n, caller)
   end
 
   @doc """
@@ -51,7 +39,7 @@ defmodule SequenceFinderTask do
   Method returns a list [s] if perfect square is found
   else an empty list []
   """
-  defp findSequence(s, k) do
+  defp findSequence(s, k, caller) do
     num = k * (k + 1) * (2 * k + 1)
     prev_seq = (s - 1) * s * (2 * s - 1)
 
@@ -60,10 +48,10 @@ defmodule SequenceFinderTask do
     div_num = div(num, 6)
     sq = :math.sqrt(div_num)
 
-    if Float.floor(sq) === Float.ceil(sq) do
-      [s]
+    if sq - round(sq) == 0 do
+      send(caller, {:taskResult, s})
     else
-      []
+      nil
     end
   end
 end

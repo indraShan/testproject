@@ -27,7 +27,7 @@ defmodule Starter do
 
   def waitForResult() do
     receive do
-      {:done} -> IO.puts "Done"
+      {:done} -> IO.puts("Done")
     end
   end
 end
